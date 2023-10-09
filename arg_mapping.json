@@ -1,0 +1,7 @@
+{
+    "--assume-yes": "--noconfirm",
+    "-y": "--noconfirm",
+    "--quiet": "--quiet",
+    "-q": "--quiet",
+    // ... other argument mappings
+}

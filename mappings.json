@@ -1,0 +1,6 @@
+{
+    "update": "sudo pacman -Sy",
+    "upgrade": "sudo pacman -Su",
+    "install": "sudo pacman -S",
+    "remove": "sudo pacman -R"
+}
