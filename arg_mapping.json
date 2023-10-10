@@ -3,5 +3,7 @@
     "-y": "--noconfirm",
     "--quiet": "--quiet",
     "-q": "--quiet",
+    "--force-yes": "--force",
+    "-f": "--force",
     // ... other argument mappings
 }

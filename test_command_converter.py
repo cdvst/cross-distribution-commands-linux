@@ -1,35 +1,42 @@
-import unittest
-from command_converter import CommandConverter
+name: Continuous Integration
 
-class TestCommandConverter(unittest.TestCase):
+on:
+  push:
+    branches:
+      - main  # or the name of your default branch
 
-    def setUp(self):
-        self.converter = CommandConverter('mappings.json')
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.7, 3.8, 3.9, 3.10]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # If you have any dependencies, install them here
+      
+      - name: Run tests
+        run: python -m unittest discover
 
-    def test_update_command(self):
-        ubuntu_command = 'apt update'
-        expected_manjaro_command = 'sudo pacman -Sy'
-        self.assertEqual(self.converter.convert(ubuntu_command), expected_manjaro_command)
-
-    def test_upgrade_command(self):
-        ubuntu_command = 'apt upgrade'
-        expected_manjaro_command = 'sudo pacman -Su'
-        self.assertEqual(self.converter.convert(ubuntu_command), expected_manjaro_command)
-
-    def test_install_command(self):
-        ubuntu_command = 'apt install package_name'
-        expected_manjaro_command = 'sudo pacman -S package_name'
-        self.assertEqual(self.converter.convert(ubuntu_command), expected_manjaro_command)
-
-    def test_remove_command(self):
-        ubuntu_command = 'apt remove package_name'
-        expected_manjaro_command = 'sudo pacman -R package_name'
-        self.assertEqual(self.converter.convert(ubuntu_command), expected_manjaro_command)
-
-    # Additional tests for edge cases and other command variations
-    def test_non_existent_command(self):
-        ubuntu_command = 'apt non_existent_command'
-        self.assertIsNone(self.converter.convert(ubuntu_command))
-
-if __name__ == '__main__':
-    unittest.main()
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const issue = {
+              title: "Test Failure",
+              body: `Tests failed on ${{ matrix.os }} with Python ${{ matrix.python-version }}`,
+              labels: ["bug", "CI"]
+            };
+            github.rest.issues.create(issue);

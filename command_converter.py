@@ -1,44 +1,36 @@
 import json
 import subprocess
 import sys
-import shlex
-import logging
 
 class CommandConverter:
-    def __init__(self, command_mappings_file, arg_mappings_file):
-        with open(command_mappings_file, 'r') as file:
-            self.command_map = json.load(file)
-        with open(arg_mappings_file, 'r') as file:
-            self.arg_map = json.load(file)
-        logging.basicConfig(level=logging.INFO)
+    def __init__(self, mapping_file):
+        with open(mapping_file, 'r') as file:
+            self.command_mappings = json.load(file)
 
-    def translate_args(self, args):
-        translated_args = []
-        for arg in args:
-            translated_arg = self.arg_map.get(arg, arg)  # Default to original arg if no translation found
-            translated_args.append(translated_arg)
-        return translated_args
-
-    def convert(self, ubuntu_command):
-        ubuntu_command_parts = shlex.split(ubuntu_command)
-        manjaro_command_base = self.command_map.get(ubuntu_command_parts[1])
-        if manjaro_command_base:
-            translated_args = self.translate_args(ubuntu_command_parts[2:])
-            dynamic_parts = " ".join(translated_args)
-            return f"{manjaro_command_base} {dynamic_parts}"
+    def convert_command(self, command):
+        ubuntu_command = command.split()
+        if ubuntu_command[0] in self.command_mappings:
+            manjaro_command = self.command_mappings[ubuntu_command[0]]
+            manjaro_command.extend(ubuntu_command[1:])
+            return ' '.join(manjaro_command)
         else:
-            logging.warning(f'No direct match for {ubuntu_command_parts[1]}')
-            return None
+            print(f"Command {ubuntu_command[0]} not found in mappings.")
+            sys.exit(1)
 
-    def execute(self, manjaro_command):
-        logging.info(f'Executing: {manjaro_command}')
-        subprocess.run(manjaro_command, shell=True)
+    def execute_command(self, command):
+        try:
+            process = subprocess.Popen(command, shell=True)
+            process.communicate()
+        except Exception as e:
+            print(f"Failed to execute command: {e}")
+            sys.exit(1)
 
 if __name__ == "__main__":
-    ubuntu_command = ' '.join(sys.argv[1:])
-    converter = CommandConverter('mappings.json', 'arg_mappings.json')
-    manjaro_command = converter.convert(ubuntu_command)
-    if manjaro_command:
-        converter.execute(manjaro_command)
+    converter = CommandConverter('command_mappings.json')
+    if len(sys.argv) > 1:
+        ubuntu_command = sys.argv[1]
+        manjaro_command = converter.convert_command(ubuntu_command)
+        converter.execute_command(manjaro_command)
     else:
-        logging.error(f'Failed to convert: {ubuntu_command}')
+        print("No command provided.")
+        sys.exit(1)

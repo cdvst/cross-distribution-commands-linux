@@ -1,0 +1,7 @@
+{
+    "apt": ["pamac"],
+    "apt-get": ["pacman", "-S"],
+    "dpkg": ["pacman", "-Q"],
+    "apt-cache": ["pacman", "-Si"],
+    "aptitude": ["pacman"]
+}

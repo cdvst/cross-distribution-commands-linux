@@ -2,5 +2,8 @@
     "update": "sudo pacman -Sy",
     "upgrade": "sudo pacman -Su",
     "install": "sudo pacman -S",
-    "remove": "sudo pacman -R"
+    "remove": "sudo pacman -R",
+    "autoremove": "sudo pacman -Rs",
+    "purge": "sudo pacman -Rns",
+    // ... any other command mappings
 }
